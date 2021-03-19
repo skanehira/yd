@@ -23,7 +23,7 @@ type UI struct {
 
 func NewInput() *tview.InputField {
 	input := tview.NewInputField()
-	//input.SetFieldBackgroundColor(tcell.ColorDefault)
+	// input.SetFieldBackgroundColor(tcell.ColorDefault)
 	return input
 }
 
@@ -61,7 +61,7 @@ func (ui *UI) Start() error {
 			defer func() {
 				ui.Out.Reset()
 				// do nothing
-				recover()
+				_ = recover()
 			}()
 			expr := text
 			node, err := ui.Parser.ParseExpression(expr)
