@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "go-cli-template",
+	Use: "yid",
 }
 
 func exitError(msg interface{}) {

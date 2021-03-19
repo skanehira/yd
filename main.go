@@ -1,6 +1,6 @@
 package main
 
-import "github.com/skanehira/go-cli-template/cmd"
+import "github.com/skanehira/yid/cmd"
 
 func main() {
 	cmd.Execute()
