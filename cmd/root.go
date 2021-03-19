@@ -1,10 +1,17 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 
+	"github.com/mikefarah/yq/v4/pkg/yqlib"
+	"github.com/skanehira/yid/ui"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
+	logging "gopkg.in/op/go-logging.v1"
 )
 
 var rootCmd = &cobra.Command{
@@ -17,8 +24,39 @@ func exitError(msg interface{}) {
 }
 
 func Execute() {
+	file := rootCmd.PersistentFlags().StringP("file", "f", "", "yaml file")
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		_ = rootCmd.Help()
+		var f io.Reader
+		if term.IsTerminal(int(os.Stdin.Fd())) {
+			if *file == "" {
+				_ = rootCmd.Help()
+				return
+			}
+			var err error
+			f, err = os.Open(*file)
+			if err != nil {
+				exitError(err)
+				return
+			}
+		} else {
+			f = os.Stdin
+		}
+
+		b, err := ioutil.ReadAll(f)
+		if err != nil {
+			exitError(err)
+		}
+		in := bytes.NewBuffer(b)
+		logging.SetLevel(logging.ERROR, "")
+
+		out := &bytes.Buffer{}
+		printer := yqlib.NewPrinter(out, false, true, true, 2, true)
+		eval := yqlib.NewStreamEvaluator()
+		parser := yqlib.NewExpressionParser()
+
+		if err := ui.New(in, out, printer, eval, parser).Start(); err != nil {
+			exitError(err)
+		}
 	}
 
 	if err := rootCmd.Execute(); err != nil {
