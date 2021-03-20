@@ -23,7 +23,9 @@ type UI struct {
 
 func NewInput() *tview.InputField {
 	input := tview.NewInputField()
-	// input.SetFieldBackgroundColor(tcell.ColorDefault)
+	input.SetFieldBackgroundColor(tcell.ColorDefault)
+	input.SetLabel(">").SetLabelColor(tcell.ColorGreen)
+	input.SetFieldTextColor(tcell.ColorYellow)
 	return input
 }
 
@@ -56,27 +58,30 @@ func (ui *UI) Start() error {
 
 	ui.View.SetText(ui.Out.String())
 
+	eval := func(expr string) {
+		defer func() {
+			ui.Out.Reset()
+			// do nothing
+			_ = recover()
+		}()
+
+		node, err := ui.Parser.ParseExpression(expr)
+		if err != nil {
+			return
+		}
+
+		// copy input
+		in := *ui.In
+
+		if err := ui.Evaluator.Evaluate("-", &in, node, ui.Printer); err != nil {
+			return
+		}
+		ui.View.SetText(tview.TranslateANSI(ui.Out.String()))
+	}
+
 	ui.Input.SetChangedFunc(func(text string) {
 		go ui.App.QueueUpdateDraw(func() {
-			defer func() {
-				ui.Out.Reset()
-				// do nothing
-				_ = recover()
-			}()
-			expr := text
-			node, err := ui.Parser.ParseExpression(expr)
-			if err != nil {
-				return
-			}
-
-			// copy input
-			in := *ui.In
-
-			if err := ui.Evaluator.Evaluate("-", &in, node, ui.Printer); err != nil {
-				return
-			}
-
-			ui.View.SetText(tview.TranslateANSI(ui.Out.String())).ScrollToBeginning()
+			eval(text)
 		})
 	})
 
@@ -93,6 +98,8 @@ func (ui *UI) Start() error {
 		}
 		return event
 	})
+
+	eval("")
 
 	if err := ui.App.Run(); err != nil {
 		return err
