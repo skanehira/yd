@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -16,7 +16,15 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "yid",
+	Args: rootArgs,
+	Use:  "yid",
+}
+
+func rootArgs(cmd *cobra.Command, args []string) error {
+	if len(args) > 0 && args[0] == "version" {
+		return errors.New("invalid arguments")
+	}
+	return nil
 }
 
 func exitError(msg interface{}) {
@@ -27,26 +35,45 @@ func exitError(msg interface{}) {
 func Execute() {
 	file := rootCmd.PersistentFlags().StringP("file", "f", "", "yaml file")
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		var f io.Reader
+		var (
+			b   []byte
+			err error
+		)
 		if term.IsTerminal(int(os.Stdin.Fd())) {
-			if *file == "" {
+			if len(args) == 0 && *file == "" {
 				_ = rootCmd.Help()
 				return
 			}
-			var err error
-			f, err = os.Open(*file)
+
+			var f string
+			if *file != "" {
+				f = *file
+			} else {
+				f = args[0]
+			}
+
+			b, err = ioutil.ReadFile(f)
 			if err != nil {
 				exitError(err)
-				return
 			}
 		} else {
-			f = os.Stdin
+			b, err = ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				exitError(err)
+			}
+
+			// workaround
+			// for fix "inappropriate ioctl for device"
+			// this error is cause in tcell/v2 use stdin/stdout when initialize
+			if runtime.GOOS != "windows" {
+				stdin, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
+				if err != nil {
+					exitError(err)
+				}
+				os.Stdin = stdin
+			}
 		}
 
-		b, err := ioutil.ReadAll(f)
-		if err != nil {
-			exitError(err)
-		}
 		in := bytes.NewBuffer(b)
 		logging.SetLevel(logging.ERROR, "")
 
@@ -54,17 +81,6 @@ func Execute() {
 		printer := yqlib.NewPrinter(out, false, true, true, 2, true)
 		eval := yqlib.NewStreamEvaluator()
 		parser := yqlib.NewExpressionParser()
-
-		// workaround
-		// for fix "inappropriate ioctl for device"
-		// this error is cause in tcell/v2 use stdin/stdout when initialize
-		if runtime.GOOS != "windows" {
-			stdin, e := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
-			if e != nil {
-				exitError(err)
-			}
-			os.Stdin = stdin
-		}
 
 		if err := ui.New(in, out, printer, eval, parser).Start(); err != nil {
 			exitError(err)
