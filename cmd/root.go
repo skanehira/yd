@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"regexp"
 	"runtime"
 
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
@@ -14,6 +16,8 @@ import (
 	"golang.org/x/term"
 	logging "gopkg.in/op/go-logging.v1"
 )
+
+var rURL = regexp.MustCompile(`https?://[\w!\?/\+\-_~=;\.,\*&@#\$%\(\)'\[\]]+`)
 
 var rootCmd = &cobra.Command{
 	Args: rootArgs,
@@ -52,9 +56,21 @@ func Execute() {
 				f = args[0]
 			}
 
-			b, err = ioutil.ReadFile(f)
-			if err != nil {
-				exitError(err)
+			if rURL.MatchString(f) {
+				resp, err := http.Get(f)
+				if err != nil {
+					exitError(err)
+				}
+
+				b, err = ioutil.ReadAll(resp.Body)
+				if err != nil {
+					exitError(err)
+				}
+			} else {
+				b, err = ioutil.ReadFile(f)
+				if err != nil {
+					exitError(err)
+				}
 			}
 		} else {
 			b, err = ioutil.ReadAll(os.Stdin)
