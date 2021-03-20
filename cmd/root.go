@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
-	"github.com/skanehira/yid/ui"
+	"github.com/skanehira/yd/ui"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	logging "gopkg.in/op/go-logging.v1"
@@ -17,7 +17,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Args: rootArgs,
-	Use:  "yid",
+	Use:  "yd",
 }
 
 func rootArgs(cmd *cobra.Command, args []string) error {

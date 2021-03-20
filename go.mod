@@ -1,4 +1,4 @@
-module github.com/skanehira/yid
+module github.com/skanehira/yd
 
 go 1.16
 

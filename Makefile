@@ -1,17 +1,17 @@
-BIN := yid
+BIN := yd
 VERSION := $$(make -s show-version)
 VERSION_PATH := .
 CURRENT_REVISION := $(shell git rev-parse --short HEAD)
-BUILD_LDFLAGS := "-s -w -X github.com/skanehira/yid/cmd.Revision=$(CURRENT_REVISION)"
+BUILD_LDFLAGS := "-s -w -X github.com/skanehira/yd/cmd.Revision=$(CURRENT_REVISION)"
 GOBIN ?= $(shell go env GOPATH)/bin
 export GO111MODULE=on
 
 .PHONY: init
 init:
 ifeq ($(shell uname -s),Darwin)
-	@grep -r -l yid * | xargs sed -i "" "s/go-cli-template/$$(basename `git rev-parse --show-toplevel`)/"
+	@grep -r -l yd * | xargs sed -i "" "s/yid/$$(basename `git rev-parse --show-toplevel`)/"
 else
-	@grep -r -l yid * | xargs sed -i "s/go-cli-template/$$(basename `git rev-parse --show-toplevel`)/"
+	@grep -r -l yd * | xargs sed -i "s/yid/$$(basename `git rev-parse --show-toplevel`)/"
 endif
 
 .PHONY: all
