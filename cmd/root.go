@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
 	"github.com/skanehira/yid/ui"
@@ -53,6 +54,17 @@ func Execute() {
 		printer := yqlib.NewPrinter(out, false, true, true, 2, true)
 		eval := yqlib.NewStreamEvaluator()
 		parser := yqlib.NewExpressionParser()
+
+		// workaround
+		// for fix "inappropriate ioctl for device"
+		// this error is cause in tcell/v2 use stdin/stdout when initialize
+		if runtime.GOOS != "windows" {
+			stdin, e := os.OpenFile("/dev/tty", os.O_RDONLY, 0)
+			if e != nil {
+				exitError(err)
+			}
+			os.Stdin = stdin
+		}
 
 		if err := ui.New(in, out, printer, eval, parser).Start(); err != nil {
 			exitError(err)
