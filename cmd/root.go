@@ -24,6 +24,25 @@ var rootCmd = &cobra.Command{
 	Use:  "yd",
 }
 
+func help(cmd *cobra.Command, args []string) {
+	fmt.Print(`Usage:
+  yd file.yaml
+  yd https://sample.com/file.yaml
+  yd < file.yaml
+  yd -f file.yaml
+
+Available Commands:
+  help        Help about any command
+  version
+
+Flags:
+  -f, --file string   yaml file
+  -h, --help          help for yd
+
+Use "yd [command] --help" for more information about a command.
+`)
+}
+
 func rootArgs(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 && args[0] == "version" {
 		return errors.New("invalid arguments")
@@ -38,6 +57,7 @@ func exitError(msg interface{}) {
 
 func Execute() {
 	file := rootCmd.PersistentFlags().StringP("file", "f", "", "yaml file")
+	rootCmd.SetHelpFunc(help)
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
 		var (
 			b   []byte
