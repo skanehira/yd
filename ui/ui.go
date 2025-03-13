@@ -77,6 +77,7 @@ func (ui *UI) Start() error {
 			return
 		}
 		ui.View.SetText(tview.TranslateANSI(ui.Out.String()))
+		ui.View.ScrollToBeginning()
 	}
 
 	ui.Input.SetChangedFunc(func(text string) {
@@ -88,6 +89,16 @@ func (ui *UI) Start() error {
 	ui.Input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEnter {
 			ui.App.SetFocus(ui.View)
+		}
+		if event.Key() == tcell.KeyCtrlN {
+			row, _ := ui.View.GetScrollOffset()
+			ui.View.ScrollTo(row+1, 0)
+		}
+		if event.Key() == tcell.KeyCtrlP {
+			row, _ := ui.View.GetScrollOffset()
+			if row > 0 {
+				ui.View.ScrollTo(row-1, 0)
+			}
 		}
 		return event
 	})

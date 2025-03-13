@@ -24,10 +24,12 @@ Please refer [this document](https://mikefarah.gitbook.io/yq/operators) for lear
 
 ## Keybind
 
-| Key     | Description |
-|---------|-------------|
-| `Enter` | focus view  |
-| `Esc`   | focus input |
+| Key      | Description      |
+|----------|------------------|
+| `Enter`  | focus view       |
+| `Esc`    | focus input      |
+| `Ctrl-n` | scroll down view |
+| `Ctrl-p` | scroll up view   |
 
 ## Author
 skanehira
